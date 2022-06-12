@@ -13,9 +13,9 @@ import uuid from "react-native-uuid";
 import { FontAwesome } from "@expo/vector-icons";
 import SelectDropdown from "react-native-select-dropdown";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useExpense } from "../contexts/ExpProvider";
+import { useNavigation } from '@react-navigation/native';
 import colors from "../misc/colors";
-
+import ExpContext, {useExpense} from "../contexts/ContextApi";
 const countries = [
   "Other",
   "Snacks",
@@ -28,7 +28,8 @@ const countries = [
 
 import FormSubmitButton from "../common/FormSubmitBtn";
 
-const AddExpense = (props) => {
+const AddExpense = (props: { route: { params: { exp: any; isEdit: any; }; }; }) => {
+  const navigation = useNavigation();
   const { exp, isEdit } = props.route.params;
   // console.log(props.route.params)
   // const [error, setError] = useState("")
@@ -39,7 +40,7 @@ const AddExpense = (props) => {
     expdesc: "",
     expdate: new Date().toLocaleDateString(),
   });
-
+ 
   useEffect(() => {
     if (isEdit) {
       setExpense({
@@ -53,9 +54,9 @@ const AddExpense = (props) => {
     }
   }, [isEdit]);
 
-  const { expenses, setExpenses, findExpenses } = useExpense();
+  const { expenses, setExpenses, findExpenses, totalAmount } = useExpense();
 
-  const handleOnChangeText = (value, fieldname) => {
+  const handleOnChangeText = (value: string, fieldname: string) => {
     setExpense({ ...expense, [fieldname]: value });
   };
 
@@ -79,11 +80,11 @@ const AddExpense = (props) => {
     }
 
     if (isEdit) {
-      let { expmode, expamount, expdesc, expdate, id } = expense;
+      let { expmode, expamount, expdesc, expdate, id } = expense; 
       let specificItem = expenses.filter((item) => item.date === expdate);
       let newarr = specificItem[0].expenses;
-
-      newarr.map((item) => {
+   
+      newarr.map((item) => { 
         if (item.id == id) {
           // console.log(item)
           (item.expmode = expmode),
@@ -91,23 +92,27 @@ const AddExpense = (props) => {
             (item.expdesc = expdesc),
             (item.expdate = expdate);
         }
-      });
+      }); 
 
-      expenses.push(newarr);
+      // // expenses.push(newarr);
       setExpenses(expenses);
       await AsyncStorage.setItem("expenses", JSON.stringify(expenses));
-      findExpenses();
+ 
+      
+
+      // console.log(expdate)
+      // console.log(expenses)
     } else {
-      if (expenses.length == 0 || expenses === null) {
+      if (expenses.length == 0 || expenses == null) {
         let newobj = {};
         newobj["date"] = new Date().toLocaleDateString();
         newobj["expenses"] = [expense];
         expenses.push(newobj);
         setExpenses(expenses);
         await AsyncStorage.setItem("expenses", JSON.stringify(expenses));
-        findExpenses();
+   
       } else {
-        let existingDate = expenses.filter((item) => {
+        let existingDate = expenses.filter((item: { date: string; }) => {
           if (item.date === newdate) {
             return true;
           } else {
@@ -116,14 +121,14 @@ const AddExpense = (props) => {
         });
 
         if (existingDate.length !== 0) {
-          expenses.map(async (item) => {
+          expenses.map(async (item: { date: any; expenses: { id: string | number[]; expmode: string; expamount: string; expdesc: string; expdate: string; }[]; }) => {
             let fdate = item.date;
 
             if (fdate === newdate) {
               item.expenses.push(expense);
               setExpenses(expenses);
               await AsyncStorage.setItem("expenses", JSON.stringify(expenses));
-              findExpenses();
+            
             }
           });
         } else {
@@ -133,7 +138,7 @@ const AddExpense = (props) => {
           expenses.push(newobj);
           setExpenses(expenses);
           await AsyncStorage.setItem("expenses", JSON.stringify(expenses));
-          findExpenses();
+       
         }
       }
     }
@@ -145,6 +150,11 @@ const AddExpense = (props) => {
       expdesc: "",
       expdate: new Date().toLocaleDateString(),
     });
+
+    totalAmount()
+    findExpenses()
+
+    navigation.navigate('Dashboard')
   };
 
   const { expmode, expamount, expdesc, expdate } = expense;
@@ -255,8 +265,7 @@ const AddExpense = (props) => {
           <FormSubmitButton
             // submitting={isSubmitting}
             onPress={handleSubmit}
-            title={isEdit ? "Update Expense" : "Add Expense"}
-          />
+            title={isEdit ? "Update Expense" : "Add Expense"} submitting={undefined}          />
         </View>
       </KeyboardAvoidingView>
     </>

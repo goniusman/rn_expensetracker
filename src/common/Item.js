@@ -7,34 +7,38 @@ import {
   TouchableOpacity,
   Image
 } from 'react-native';
+
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesome } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { useExpense } from "../contexts/ExpProvider";
+
+import ExpContext, {useExpense} from "../contexts/ContextApi";
 import colors from '../misc/colors';
 
 const Item = ({ expense }) => {
   const navigation = useNavigation()
+  const { setExpenses, findExpenses, totalAmount } = useExpense();
+   
+  const deleteItem = async (id) => { 
+    let exps = await AsyncStorage.getItem("expenses");
+    if(exps != null || exps.length != 0){
+      let expenss = JSON.parse(exps)
+       let newarr = expenss.map(element => {
+        let newa = element.expenses.filter(item => item.id !== id)
+        element.expenses = newa
+        return element  
+        });
+        expenss = newarr;
+        setExpenses(expenss);
+        await AsyncStorage.setItem("expenses", JSON.stringify(expenss));
+    }
+
+    findExpenses()
+    totalAmount() 
+  } 
+
   const { expamount, expdesc, expmode, expdate, id } = expense;
-
-  const { expenses, setExpenses, findExpenses } = useExpense();
- 
-  const deleteItem = async (id) => {
-    console.log(id);
-    let newarr = []
-    expenses.forEach(element => {
-      console.log( element);
-      // newarr = element.expenses
-      
-      // newarr = element.expenses.filter(item => item.id !== id)
-    });
-    expenses = newarr;
-    setExpenses(expenses);
-    await AsyncStorage.setItem("expenses", JSON.stringify(expenses));
-    findExpenses();
-    console.log('success');
-  }
-
   return (
     <TouchableOpacity onPress={() => navigation.navigate('AddExpense', {isEdit:true, exp:expense})} >
       <View style={styles.item}>
@@ -49,7 +53,7 @@ const Item = ({ expense }) => {
             name="trash" size={20}
             color={colors.TGRAY} 
             style={styles.trashIcon}
-            onPress={()=>deleteItem(id)}
+            onPress={() => deleteItem(id)}
             />
         </View>
       </View>

@@ -1,15 +1,19 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { FontAwesome } from "@expo/vector-icons";
-import colors from '../misc/colors';
 
+import colors from '../misc/colors';
+import {useExpense} from '../contexts/ContextApi'
 
 const AmountContainer = ({totalAmount}) => {
+
+  const { amount, setExpenses, findExpenses } = useExpense();
+
   return (
     <View style={styles.amountContainer}> 
         {/* <FontAwesome name="dollar" size={30} color="white"  /> */}
         <Text style={{flex:2, fontWeight:'bold', color: colors.LIGHT}}>Tk</Text>
-        <Text style={styles.amount}>{totalAmount}</Text>
+        <Text style={styles.amount}>{amount}</Text>
         <Text style={{color:'white',fontWeight:'bold'}}>BDT</Text>
     </View>
   )
